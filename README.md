@@ -11,33 +11,94 @@ I explored:
 
 ---
 
-## 🔍 Theoretical Questions (Answers in Code & Analysis)
+# Theoretical Foundations: Linear Regression & Regularization
 
-At the beginning of the project, I broke down key concepts:
+## 1. Analytical Solution for Regression Problems
 
-### 1. Analytical Solution of Regression in Vector Form
+**Find the analytical solution for a regression task using the vector form of the equation.**
 
-Implemented in the `DeterministicLinearRegression` class using the `analytical` method.  
-Uses the normal equation formula:  
-**w = (XᵀX)⁻¹ Xᵀ y**
+The analytical (closed-form) solution for linear regression is derived by minimizing the Mean Squared Error (MSE) loss function:
 
-### 2. What Changes When Adding L1 and L2 Regularization
+**Vector form:**
 
-A penalty term is added to the loss function:
-- **L2 (Ridge)** → `α * Σ w²`
-- **L1 (Lasso)** → `α * Σ |w|`
+```
+w = (XᵀX)⁻¹ Xᵀ y
+```
 
-This is implemented in `_compute_gradient` and for the analytical solution (for L2 — by modifying the XᵀX matrix).
+| Symbol | Meaning |
+|--------|---------|
+| `X` | Feature matrix |
+| `y` | Target vector |
+| `w` | Weight vector |
 
-### 3. Why L1 Sets Weights to Zero
+> **Note:** This solution works when `XᵀX` is invertible (features are not perfectly correlated).
 
-I explained this in code comments:  
-L1 creates a "linear penalty" where for unimportant features, it's more beneficial to set the weight to zero than to pay the penalty. This is **built-in feature selection**.
+---
 
-### 4. How to Model Non-linearities with Linear Methods
+## 2. Impact of L1 and L2 Regularization on the Solution
 
-I demonstrated this in practice by adding **polynomial features** (squares of bathrooms, bedrooms, interest_level).  
-Linear regression on these new features effectively models non-linear relationships.
+**What changes when adding L1 or L2 regularization to the loss function?**
+
+A penalty term depending on the model parameters is simply added to the loss function:
+
+### Comparison of Regularization Types
+
+| Regularization | Penalty Term | Effect |
+|:--------------|:-------------|:-------|
+| **L2 (Ridge)** | `α Σ wᵢ²` | Shrinks weights toward zero (rarely exactly zero) |
+| **L1 (Lasso)** | `α Σ \|wᵢ\|` | Shrinks weights to exactly zero → **feature selection** |
+| **ElasticNet** | `α [ρ Σ \|wᵢ\| + (1-ρ) Σ wᵢ²]` | Combines both approaches |
+
+> 💡 **Key insight:** Regularization creates a trade-off between fitting training data and keeping weights small, which prevents overfitting.
+
+---
+
+## 3. Why L1 Regularization for Feature Selection?
+
+**Explain why L1 regularization is often used for feature selection. Why are many weights equal to zero after training?**
+
+L1 regularization doesn't just penalize large weights (like L2 does) — it introduces a **linear penalty** proportional to the absolute value of each weight. This mechanism forces the model to "choose":
+
+- ✅ **Feature stays** → if it contributes enough to the prediction to justify its penalty
+- ❌ **Feature is removed** → if the contribution is too small, the weight becomes exactly zero
+
+### Why L1 Yields Sparse Solutions
+
+| L2 (Ridge) | L1 (Lasso) |
+|:-----------|:-----------|
+| Penalty is quadratic | Penalty is linear |
+| Gradient goes to zero as weight → 0 | Constant gradient pushes weights to exactly zero |
+| Weights become very small but rarely zero | Many weights become **exactly zero** |
+
+**Result:** Unimportant features get zero coefficients — this is **automatic feature selection** built into the model.
+
+---
+
+## 4. Modeling Non-linear Relationships with Linear Models
+
+**Explain how you can use the same models (linear regression, ridge regression, etc.) while capturing non-linear dependencies.**
+
+Instead of changing the model itself, we transform the **feature space**:
+
+```
+Original features:   x₁, x₂, ..., xₙ
+           ↓
+New features:        z₁, z₂, ..., zₘ  (contain non-linearities)
+           ↓
+Linear model:        y = w₀ + w₁·z₁ + ... + wₘ·zₘ
+```
+
+### Examples of Non-linear Transformations
+
+| Type | Formula | Use Case |
+|:-----|:--------|:---------|
+| Polynomial | `x²`, `x³`, `x₁·x₂` | Capturing curvature, interactions |
+| Trigonometric | `sin(x)`, `cos(x)` | Periodic patterns |
+| Exponential | `exp(x)` | Rapid growth/decay |
+| Logarithmic | `log(x)` | Diminishing returns |
+| Square root | `√x` | Slowing growth |
+
+> 🎯 **Key takeaway:** A linear model applied to *non-linear features* becomes a non-linear model in the original feature space. This is the core idea behind **polynomial regression** and **basis function expansion**.
 
 ---
 
